@@ -1,0 +1,62 @@
+//插件
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+
+//项目描述
+group "site.mingsha"
+def artifactId = "netty-server"
+version "1.0"
+sourceCompatibility = 1.8 //java版本
+
+//中央仓库
+repositories {
+	maven{
+		url "http://localhost:8081/repository/maven-public/"
+	}
+}
+
+// 依赖库
+dependencies {
+	compile 'io.netty:netty-all:4.1.49.Final:'
+}
+
+//打包
+jar
+{
+	baseName "$artifactId"
+
+	String someString = ''
+	configurations.runtime.each {someString = someString + " lib//"+it.name}
+
+	manifest {
+	    attributes 'Manifest-Version': '1.0'
+      attributes "Main-Class": "site.mingsha.server.EchoServer"
+			attributes 'Class-Path': someString
+  }
+}
+
+//必须强制设置编码
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+//必须强制设置编码
+tasks.withType(Javadoc) {
+    options.encoding = 'UTF-8'
+}
+
+task copyJar(type:Copy){
+    from configurations.runtime
+    into ('build/libs/lib')
+}
+// 把JAR复制到目标目录
+task release(type: Copy,dependsOn: [build,copyJar]) {
+  from 'conf'
+	into ('build/libs/lib') // 目标位置
+}
+
+configurations {
+	providedRuntime
+}
